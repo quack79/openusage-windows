@@ -1,9 +1,23 @@
 import { render, screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import { invoke } from "@tauri-apps/api/core"
 
 import { ProviderDetailPage } from "@/pages/provider-detail"
 
+vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn().mockResolvedValue(false) }))
+
 describe("ProviderDetailPage", () => {
+  beforeEach(() => { vi.mocked(invoke).mockResolvedValue(false) })
+
+  it.each(["openrouter", "cheaperinference"])("renders key settings for %s", async (id) => {
+    render(<ProviderDetailPage displayMode="used" resetTimerDisplayMode="relative" plugin={{
+      meta: { id, name: id, iconUrl: "", lines: [], primaryCandidates: [] },
+      data: null, loading: false, error: null, lastManualRefreshAt: null, lastUpdatedAt: null,
+    }} />)
+    expect(screen.getByLabelText("API key")).toBeInTheDocument()
+    expect(await screen.findByRole("button", { name: "Save key" })).toBeInTheDocument()
+  })
+
   it("shows not found when plugin missing", () => {
     render(<ProviderDetailPage plugin={null} displayMode="used" resetTimerDisplayMode="relative" />)
     expect(screen.getByText("Provider not found")).toBeInTheDocument()

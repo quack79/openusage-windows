@@ -43,17 +43,17 @@ export function useProbeState({ onProbeResult }: UseProbeStateArgs) {
     return null
   }, [])
 
-  const setLoadingForPlugins = useCallback((ids: string[]) => {
+  const setLoadingForPlugins = useCallback((ids: string[], clearData = false) => {
     updatePluginStates((prev) => {
       const next = { ...prev }
       for (const id of ids) {
         const existing = prev[id]
         next[id] = {
-          data: existing?.data ?? null,
+          data: clearData ? null : existing?.data ?? null,
           loading: true,
           error: null,
           lastManualRefreshAt: existing?.lastManualRefreshAt ?? null,
-          lastUpdatedAt: existing?.lastUpdatedAt ?? null,
+          lastUpdatedAt: clearData ? null : existing?.lastUpdatedAt ?? null,
         }
       }
       return next

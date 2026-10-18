@@ -13,6 +13,25 @@ vi.mock("@/lib/settings", () => ({
 import { useProbeRefreshActions } from "@/hooks/app/use-probe-refresh-actions"
 
 describe("useProbeRefreshActions", () => {
+  it("refreshes after a key change even during the manual refresh cooldown", () => {
+    const startBatch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useProbeRefreshActions({
+      pluginSettings: { order: ["openrouter"], disabled: [] },
+      pluginStatesRef: { current: {
+        openrouter: { data: null, loading: false, error: null, lastManualRefreshAt: Date.now(), lastUpdatedAt: null },
+      } },
+      manualRefreshIdsRef: { current: new Set<string>() },
+      resetAutoUpdateSchedule: vi.fn(),
+      setLoadingForPlugins: vi.fn(),
+      setErrorForPlugins: vi.fn(),
+      startBatch,
+    }))
+    act(() => result.current.handleRetryPlugin("openrouter"))
+    expect(startBatch).not.toHaveBeenCalled()
+    act(() => result.current.handleRetryPlugin("openrouter", true))
+    expect(startBatch).toHaveBeenCalledWith(["openrouter"])
+  })
+
   beforeEach(() => {
     getEnabledPluginIdsMock.mockReset()
     getEnabledPluginIdsMock.mockImplementation((settings: { order: string[]; disabled: string[] }) =>

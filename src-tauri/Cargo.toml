@@ -55,6 +55,8 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 regex-lite = "0.1.9"
 aes-gcm = "0.10.3"
 sha2 = "0.11"
+# Persist manually entered provider keys in the OS credential store.
+keyring = { version = "3.6.3", features = ["windows-native", "apple-native"] }
 
 # macOS-only. The menu-bar panel uses tauri-nspanel (an NSPanel wrapper); on
 # Windows/Linux the panel is a regular always-on-top borderless WebviewWindow

@@ -245,6 +245,14 @@ pub fn cache_successful_output(output: &PluginOutput) {
     schedule_cache_flush_locked(&mut state);
 }
 
+pub(crate) fn invalidate_provider(provider_id: &str) {
+    let mut state = cache_state().lock().expect("cache state poisoned");
+    if state.snapshots.remove(provider_id).is_some() {
+        state.dirty_generation = state.dirty_generation.wrapping_add(1);
+        schedule_cache_flush_locked(&mut state);
+    }
+}
+
 pub fn flush_cache() {
     if let CacheFlushResult::Failed(e) = flush_pending_cache_once() {
         log::warn!("{}", e);
@@ -391,6 +399,7 @@ mod tests {
                 value: "42%".to_string(),
                 color: None,
                 subtitle: None,
+                amount_usd: None,
             }],
             icon_url: String::new(),
         }
@@ -507,6 +516,25 @@ mod tests {
         let loaded = load_cache(&dir);
         assert!(loaded.is_empty());
 
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    #[serial]
+    fn changing_credentials_removes_only_that_providers_cached_balance() {
+        let dir = temp_dir("credential-change-cache");
+        std::fs::create_dir_all(&dir).unwrap();
+        init(&dir, vec!["openrouter".to_string(), "codex".to_string()]);
+        cache_successful_output(&make_output("openrouter", "OpenRouter"));
+        cache_successful_output(&make_output("codex", "Codex"));
+        flush_cache();
+        invalidate_provider("openrouter");
+        flush_cache();
+        assert!(cached_snapshots().iter().all(|s| s.provider_id != "openrouter"));
+        let loaded = load_cache(&dir);
+        assert!(!loaded.contains_key("openrouter"));
+        assert!(loaded.contains_key("codex"));
+        wait_for_cache_writer_idle();
         let _ = std::fs::remove_dir_all(&dir);
     }
 

@@ -15,6 +15,7 @@ export type AutoUpdateIntervalMinutes = 5 | 15 | 30 | 60;
 export type ThemeMode = "system" | "light" | "dark";
 
 export type DisplayMode = "used" | "left";
+export type BalanceCurrency = "USD" | "GBP";
 
 export type ResetTimerDisplayMode = "relative" | "absolute";
 
@@ -102,6 +103,34 @@ export const TIME_FORMAT_OPTIONS: { value: TimeFormatMode; label: string }[] = [
 ];
 
 const store = new LazyStore(SETTINGS_STORE_PATH);
+
+export async function loadBalanceCurrency(): Promise<BalanceCurrency> {
+  return await store.get<unknown>("balanceCurrency") === "GBP" ? "GBP" : "USD";
+}
+
+export async function saveBalanceCurrency(currency: BalanceCurrency): Promise<void> {
+  await saveBalanceWindowPreference("balanceCurrency", currency);
+}
+
+export async function loadKeepWindowOpen(): Promise<boolean> {
+  return await store.get<unknown>("keepWindowOpen") === true;
+}
+
+export async function saveKeepWindowOpen(value: boolean): Promise<void> {
+  await saveBalanceWindowPreference("keepWindowOpen", value);
+}
+
+async function saveBalanceWindowPreference(key: string, value: string | boolean): Promise<void> {
+  const previous = await store.get<unknown>(key);
+  await store.set(key, value);
+  try {
+    await store.save();
+  } catch (error) {
+    // Focus-loss handling reads the shared store, so revert its in-memory value too.
+    await store.set(key, previous ?? null);
+    throw error;
+  }
+}
 
 const DEFAULT_ENABLED_PLUGINS = new Set(["claude", "codex", "cursor"]);
 

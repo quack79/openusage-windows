@@ -10,6 +10,8 @@ import type { SettingsPluginState } from "@/hooks/app/use-settings-plugin-list"
 import { useAppVersion } from "@/hooks/app/use-app-version"
 import { usePanel } from "@/hooks/app/use-panel"
 import { useAppUpdate } from "@/hooks/use-app-update"
+import { WindowControls } from "@/components/window-controls"
+import { useBalanceWindowPreferences } from "@/hooks/app/use-balance-window-preferences"
 import { useAppUiStore } from "@/stores/app-ui-store"
 
 const ARROW_OVERHEAD_PX = 37
@@ -39,6 +41,7 @@ export function AppShell({
   onNavReorder,
   appContentProps,
 }: AppShellProps) {
+  useBalanceWindowPreferences()
   const {
     activeView,
     setActiveView,
@@ -143,11 +146,12 @@ export function AppShell({
         {isWindows && (
           <div
             onMouseDown={handlePanelDragStart}
-            aria-hidden="true"
-            title="Drag to move"
-            className="flex h-5 w-full shrink-0 cursor-grab items-center justify-center active:cursor-grabbing"
+            className="flex h-8 w-full shrink-0 items-center gap-2 px-2"
           >
-            <div className="pointer-events-none h-1 w-8 rounded-full bg-border" />
+            <div aria-hidden="true" title="Drag to move" className="flex flex-1 h-full cursor-grab items-center justify-center active:cursor-grabbing">
+              <div className="pointer-events-none h-1 w-8 rounded-full bg-border" />
+            </div>
+            <WindowControls />
           </div>
         )}
         <div className="flex flex-1 min-h-0 flex-row">

@@ -50,6 +50,8 @@ pub enum MetricLine {
         value: String,
         color: Option<String>,
         subtitle: Option<String>,
+        #[serde(default, rename = "amountUsd", skip_serializing_if = "Option::is_none")]
+        amount_usd: Option<f64>,
     },
     Progress {
         label: String,
@@ -279,6 +281,7 @@ fn parse_lines(result: &Object) -> Result<Vec<MetricLine>, String> {
                     value,
                     color,
                     subtitle,
+                    amount_usd: line.get::<_, f64>("amountUsd").ok().filter(|n| n.is_finite()),
                 });
             }
             "progress" => {
@@ -741,6 +744,41 @@ fn error_line(message: String) -> MetricLine {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn monetary_text_survives_the_plugin_boundary_and_json_cache() {
+        let rt = Runtime::new().unwrap();
+        let context = Context::full(&rt).unwrap();
+        context.with(|ctx| {
+            let result: Object = ctx.eval(
+                r#"({ lines: [{ type: 'text', label: 'Available balance', value: '$20.77', amountUsd: 20.77 }] })"#,
+            ).unwrap();
+            let lines = parse_lines(&result).unwrap();
+            let json = serde_json::to_value(&lines).unwrap();
+            assert_eq!(json[0]["amountUsd"], 20.77);
+            let cached: Vec<MetricLine> = serde_json::from_value(json).unwrap();
+            assert!(matches!(cached[0], MetricLine::Text { amount_usd: Some(n), .. } if n == 20.77));
+        });
+    }
+
+    #[test]
+    fn old_text_and_invalid_amounts_do_not_become_zero_balances() {
+        let rt = Runtime::new().unwrap();
+        let context = Context::full(&rt).unwrap();
+        context.with(|ctx| {
+            for amount in ["undefined", "null", "'20'", "NaN", "Infinity"] {
+                let result: Object = ctx.eval(format!(
+                    "({{ lines: [{{ type: 'text', label: 'Plan', value: 'Pro', amountUsd: {} }}] }})", amount,
+                )).unwrap();
+                let json = serde_json::to_value(parse_lines(&result).unwrap()).unwrap();
+                assert!(json[0].get("amountUsd").is_none(), "{}", amount);
+            }
+            let cached: MetricLine = serde_json::from_str(
+                r#"{"type":"text","label":"Account balance","value":"$20.00"}"#,
+            ).unwrap();
+            assert!(matches!(cached, MetricLine::Text { amount_usd: None, .. }));
+        });
+    }
+
     use crate::plugin_engine::manifest::{LoadedPlugin, PluginManifest};
     use serde_json::Value as JsonValue;
     use std::path::PathBuf;

@@ -98,6 +98,7 @@ export const makeCtx = () => {
   ctx.line = {
     text: (opts) => {
       const line = { type: "text", label: opts.label, value: opts.value }
+      if (typeof opts.amountUsd === "number" && Number.isFinite(opts.amountUsd)) line.amountUsd = opts.amountUsd
       if (opts.color) line.color = opts.color
       if (opts.subtitle) line.subtitle = opts.subtitle
       return line

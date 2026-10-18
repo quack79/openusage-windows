@@ -1,10 +1,11 @@
 import { ProviderCard } from "@/components/provider-card"
+import { ProviderApiKey } from "@/components/provider-api-key"
 import type { PluginDisplayState } from "@/lib/plugin-types"
 import type { DisplayMode, ResetTimerDisplayMode, TimeFormatMode } from "@/lib/settings"
 
 interface ProviderDetailPageProps {
   plugin: PluginDisplayState | null
-  onRetry?: () => void
+  onRetry?: (credentialsChanged?: boolean) => void
   displayMode: DisplayMode
   resetTimerDisplayMode: ResetTimerDisplayMode
   timeFormatMode?: TimeFormatMode
@@ -28,23 +29,33 @@ export function ProviderDetailPage({
   }
 
   return (
-    <ProviderCard
-      name={plugin.meta.name}
-      plan={plugin.data?.plan}
-      links={plugin.meta.links}
-      showSeparator={false}
-      loading={plugin.loading}
-      error={plugin.error}
-      lines={plugin.data?.lines ?? []}
-      skeletonLines={plugin.meta.lines}
-      lastManualRefreshAt={plugin.lastManualRefreshAt}
-      lastUpdatedAt={plugin.lastUpdatedAt}
-      onRetry={onRetry}
-      scopeFilter="all"
-      displayMode={displayMode}
-      resetTimerDisplayMode={resetTimerDisplayMode}
-      timeFormatMode={timeFormatMode}
-      onResetTimerDisplayModeToggle={onResetTimerDisplayModeToggle}
-    />
+    <>
+      <ProviderCard
+        name={plugin.meta.name}
+        plan={plugin.data?.plan}
+        links={plugin.meta.links}
+        showSeparator={false}
+        loading={plugin.loading}
+        error={plugin.error}
+        lines={plugin.data?.lines ?? []}
+        skeletonLines={plugin.meta.lines}
+        lastManualRefreshAt={plugin.lastManualRefreshAt}
+        lastUpdatedAt={plugin.lastUpdatedAt}
+        onRetry={onRetry}
+        scopeFilter="all"
+        displayMode={displayMode}
+        resetTimerDisplayMode={resetTimerDisplayMode}
+        timeFormatMode={timeFormatMode}
+        onResetTimerDisplayModeToggle={onResetTimerDisplayModeToggle}
+      />
+      {(plugin.meta.id === "openrouter" || plugin.meta.id === "cheaperinference") && (
+        <ProviderApiKey
+          key={plugin.meta.id}
+          providerId={plugin.meta.id}
+          disabled={plugin.loading}
+          onChanged={() => onRetry?.(true)}
+        />
+      )}
+    </>
   )
 }

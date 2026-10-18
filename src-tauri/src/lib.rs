@@ -5,6 +5,7 @@ mod local_http_api;
 mod log_path;
 mod panel;
 mod plugin_engine;
+mod provider_credentials;
 mod tray;
 #[cfg(target_os = "macos")]
 mod webkit_config;
@@ -703,6 +704,9 @@ pub fn run() {
             list_plugins,
             get_cached_usage,
             get_log_path,
+            provider_credentials::has_provider_api_key,
+            provider_credentials::set_provider_api_key,
+            provider_credentials::delete_provider_api_key,
             update_global_shortcut
         ])
         .setup(|app| {

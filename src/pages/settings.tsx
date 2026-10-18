@@ -16,6 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
+import { BalanceCurrencySetting } from "@/components/balance-currency-setting";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { GlobalShortcutSection } from "@/components/global-shortcut-section";
@@ -332,6 +333,7 @@ export function SettingsPage({
 
   return (
     <div className="py-3 space-y-4">
+      <BalanceCurrencySetting />
       <section>
         <h3 className="text-lg font-semibold mb-0">Auto Refresh</h3>
         <p className="text-sm text-muted-foreground mb-2">

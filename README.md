@@ -56,7 +56,10 @@ OpenUsage lives in your system tray and shows how much of your AI coding subscri
 - [**MiniMax**](docs/providers/minimax.md) — coding‑plan session
 - [**OpenCode Go**](docs/providers/opencode-go.md) — 5h, weekly, monthly spend limits
 
-Each provider reads the login that its own app or CLI already saved on your machine — OpenUsage never asks you for a password. Providers are plugins; see the [plugin docs](docs/plugins/) for how they work.
+- **OpenRouter** — account credits with a management key, or remaining key allowance with a regular key
+- **CheaperInference** — available wallet balance, reserved funds, and auto-recharge state
+
+OpenRouter and CheaperInference accept API keys on their provider pages and save them in the system credential store. See [API balance setup](docs/providers/api-balances.md). Other providers read the login saved by their app or CLI. Providers are plugins; see the [plugin docs](docs/plugins/) for how they work.
 
 ## What's different on Windows
 

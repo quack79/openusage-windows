@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "openrouter",
+  "name": "OpenRouter",
+  "version": "0.0.2",
+  "entry": "plugin.js",
+  "icon": "icon.svg",
+  "brandColor": "#6467F2",
+  "lines": [
+    { "type": "text", "label": "Account balance", "scope": "overview" },
+    { "type": "text", "label": "Key remaining", "scope": "overview" },
+    { "type": "text", "label": "Key limit", "scope": "detail" },
+    { "type": "text", "label": "Key usage", "scope": "detail" },
+    { "type": "text", "label": "Today", "scope": "detail" },
+    { "type": "text", "label": "This month", "scope": "detail" }
+  ],
+  "links": [
+    { "label": "Credits", "url": "https://openrouter.ai/settings/credits" },
+    { "label": "API keys", "url": "https://openrouter.ai/settings/keys" }
+  ]
+}

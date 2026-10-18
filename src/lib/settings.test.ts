@@ -13,6 +13,10 @@ import {
   arePluginSettingsEqual,
   getEnabledPluginIds,
   loadAutoUpdateInterval,
+  loadBalanceCurrency,
+  loadKeepWindowOpen,
+  saveBalanceCurrency,
+  saveKeepWindowOpen,
   loadDisplayMode,
   loadGlobalShortcut,
   loadMenubarIconStyle,
@@ -60,12 +64,32 @@ vi.mock("@tauri-apps/plugin-store", () => ({
       storeState.delete(key)
     }
     async save(): Promise<void> {
-      storeSaveMock()
+      await storeSaveMock()
     }
   },
 }))
 
 describe("settings", () => {
+  it("persists GBP and keep-open and safely defaults invalid saved values", async () => {
+    await expect(loadBalanceCurrency()).resolves.toBe("USD")
+    await expect(loadKeepWindowOpen()).resolves.toBe(false)
+    await saveBalanceCurrency("GBP")
+    await saveKeepWindowOpen(true)
+    await expect(loadBalanceCurrency()).resolves.toBe("GBP")
+    await expect(loadKeepWindowOpen()).resolves.toBe(true)
+    storeState.set("balanceCurrency", "EUR")
+    storeState.set("keepWindowOpen", "true")
+    await expect(loadBalanceCurrency()).resolves.toBe("USD")
+    await expect(loadKeepWindowOpen()).resolves.toBe(false)
+  })
+
+  it("restores the in-memory keep-open preference if disk persistence fails", async () => {
+    storeState.set("keepWindowOpen", false)
+    storeSaveMock.mockRejectedValueOnce(new Error("disk full"))
+    await expect(saveKeepWindowOpen(true)).rejects.toThrow("disk full")
+    await expect(loadKeepWindowOpen()).resolves.toBe(false)
+  })
+
   beforeEach(() => {
     storeState.clear()
     storeDeleteMock.mockReset()

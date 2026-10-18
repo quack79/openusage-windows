@@ -1,4 +1,5 @@
 import { Fragment, useMemo } from "react"
+import { BalanceAmount } from "@/components/balance-amount"
 import { AlertCircle, ExternalLink, Hourglass, RefreshCw } from "lucide-react"
 import { openUrl } from "@tauri-apps/plugin-opener"
 import { Badge } from "@/components/ui/badge"
@@ -365,6 +366,9 @@ function MetricLineRenderer({
   refreshing?: boolean
 }) {
   if (line.type === "text") {
+    if (typeof line.amountUsd === "number" && Number.isFinite(line.amountUsd)) {
+      return <BalanceAmount label={line.label} amountUsd={line.amountUsd} subtitle={line.subtitle} color={line.color} />
+    }
     return (
       <div>
         <div className="flex justify-between items-center h-[18px] gap-2">

@@ -10,6 +10,7 @@ import {
   DEFAULT_THEME_MODE,
   DEFAULT_TIME_FORMAT_MODE,
   type AutoUpdateIntervalMinutes,
+  type BalanceCurrency,
   type DisplayMode,
   type GlobalShortcut,
   type MenubarIconStyle,
@@ -20,6 +21,10 @@ import {
 } from "@/lib/settings"
 
 type AppPreferencesStore = {
+  balanceCurrency: BalanceCurrency
+  keepWindowOpen: boolean
+  setBalanceCurrency: (value: BalanceCurrency) => void
+  setKeepWindowOpen: (value: boolean) => void
   autoUpdateInterval: AutoUpdateIntervalMinutes
   themeMode: ThemeMode
   displayMode: DisplayMode
@@ -42,6 +47,8 @@ type AppPreferencesStore = {
 }
 
 const initialState = {
+  balanceCurrency: "USD" as BalanceCurrency,
+  keepWindowOpen: false,
   autoUpdateInterval: DEFAULT_AUTO_UPDATE_INTERVAL,
   themeMode: DEFAULT_THEME_MODE,
   displayMode: DEFAULT_DISPLAY_MODE,
@@ -55,6 +62,8 @@ const initialState = {
 
 export const useAppPreferencesStore = create<AppPreferencesStore>((set) => ({
   ...initialState,
+  setBalanceCurrency: (value) => set({ balanceCurrency: value }),
+  setKeepWindowOpen: (value) => set({ keepWindowOpen: value }),
   setAutoUpdateInterval: (value) => set({ autoUpdateInterval: value }),
   setThemeMode: (value) => set({ themeMode: value }),
   setDisplayMode: (value) => set({ displayMode: value }),

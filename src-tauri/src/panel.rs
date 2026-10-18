@@ -17,6 +17,15 @@ pub use mac::*;
 #[cfg(not(target_os = "macos"))]
 pub use other::*;
 
+fn keep_window_open(app: &tauri::AppHandle) -> bool {
+    use tauri_plugin_store::StoreExt;
+    app.store("settings.json")
+        .ok()
+        .and_then(|store| store.get("keepWindowOpen"))
+        .and_then(|value| value.as_bool())
+        .unwrap_or(false)
+}
+
 // ---------------------------------------------------------------------------
 // macOS — NSPanel implementation (unchanged behavior from upstream).
 // ---------------------------------------------------------------------------
@@ -222,6 +231,9 @@ mod mac {
 
         let handle = app_handle.clone();
         event_handler.window_did_resign_key(move |_notification| {
+            if super::keep_window_open(&handle) {
+                return;
+            }
             if let Ok(panel) = handle.get_webview_panel("main") {
                 panel.hide();
             }
@@ -434,6 +446,9 @@ mod other {
         let handle = app_handle.clone();
         window.on_window_event(move |event| {
             if let tauri::WindowEvent::Focused(false) = event {
+                if super::keep_window_open(&handle) {
+                    return;
+                }
                 LAST_AUTO_HIDE_MS.store(now_ms(), Ordering::SeqCst);
                 hide_panel(&handle);
             }

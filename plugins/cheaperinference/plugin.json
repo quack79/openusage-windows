@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "cheaperinference",
+  "name": "CheaperInference",
+  "version": "0.0.2",
+  "entry": "plugin.js",
+  "icon": "icon.svg",
+  "brandColor": "#16A34A",
+  "lines": [
+    { "type": "text", "label": "Available balance", "scope": "overview" },
+    { "type": "text", "label": "Wallet balance", "scope": "detail" },
+    { "type": "text", "label": "Reserved", "scope": "detail" },
+    { "type": "badge", "label": "Auto recharge", "scope": "detail" }
+  ],
+  "links": [
+    { "label": "Dashboard", "url": "https://platform.cheaperinference.com" },
+    { "label": "API docs", "url": "https://platform.cheaperinference.com/api-reference" }
+  ]
+}

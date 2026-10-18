@@ -647,6 +647,7 @@ pub(crate) fn inject_host_api_with_deadline<'js>(
     inject_env(ctx, &host, plugin_id)?;
     inject_http(ctx, &host, plugin_id, deadline)?;
     inject_keychain(ctx, &host, plugin_id)?;
+    inject_provider_credentials(ctx, &host, plugin_id)?;
     inject_sqlite(ctx, &host)?;
     inject_ls(ctx, &host, plugin_id)?;
     inject_ccusage(ctx, &host, plugin_id, deadline)?;
@@ -654,6 +655,27 @@ pub(crate) fn inject_host_api_with_deadline<'js>(
     probe_ctx.set("host", host)?;
     globals.set("__openusage_ctx", probe_ctx)?;
 
+    Ok(())
+}
+
+fn inject_provider_credentials<'js>(
+    ctx: &Ctx<'js>,
+    host: &Object<'js>,
+    plugin_id: &str,
+) -> rquickjs::Result<()> {
+    let credentials = Object::new(ctx.clone())?;
+    let pid = plugin_id.to_string();
+    credentials.set(
+        "getApiKey",
+        Function::new(
+            ctx.clone(),
+            move |ctx_inner: Ctx<'_>| -> rquickjs::Result<Option<String>> {
+                crate::provider_credentials::read_api_key(&pid)
+                    .map_err(|message| Exception::throw_message(&ctx_inner, &message))
+            },
+        )?,
+    )?;
+    host.set("credentials", credentials)?;
     Ok(())
 }
 
@@ -1036,6 +1058,7 @@ pub fn inject_utils(ctx: &rquickjs::Ctx<'_>) -> rquickjs::Result<()> {
             ctx.line = {
                 text: function(opts) {
                     var line = { type: "text", label: opts.label, value: opts.value };
+                    if (typeof opts.amountUsd === "number" && Number.isFinite(opts.amountUsd)) line.amountUsd = opts.amountUsd;
                     if (opts.color) line.color = opts.color;
                     if (opts.subtitle) line.subtitle = opts.subtitle;
                     return line;
@@ -3418,6 +3441,21 @@ mod tests {
                 empty,
                 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             );
+        });
+    }
+
+    #[test]
+    fn credential_api_cannot_read_another_plugins_key() {
+        let rt = Runtime::new().expect("runtime");
+        let context = Context::full(&rt).expect("context");
+        context.with(|ctx| {
+            let host = Object::new(ctx.clone()).expect("host");
+            inject_provider_credentials(&ctx, &host, "unapproved-plugin").expect("credentials");
+            ctx.globals().set("host", host).expect("set host");
+            let message: String = ctx.eval(
+                r#"try { host.credentials.getApiKey('openrouter'); 'unexpected success' } catch (e) { String(e) }"#,
+            ).expect("get key");
+            assert!(message.contains("does not support API key"));
         });
     }
 

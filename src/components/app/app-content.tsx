@@ -25,7 +25,7 @@ type AppContentDerivedProps = {
 }
 
 export type AppContentActionProps = {
-  onRetryPlugin: (id: string) => void
+  onRetryPlugin: (id: string, credentialsChanged?: boolean) => void
   onReorder: (orderedIds: string[]) => void
   onToggle: (id: string) => void
   onAutoUpdateIntervalChange: (value: AutoUpdateIntervalMinutes) => void
@@ -135,7 +135,9 @@ export function AppContent({
   }
 
   const handleRetry = selectedPlugin
-    ? () => onRetryPlugin(selectedPlugin.meta.id)
+    ? (credentialsChanged?: boolean) => credentialsChanged === true
+      ? onRetryPlugin(selectedPlugin.meta.id, true)
+      : onRetryPlugin(selectedPlugin.meta.id)
     : /* v8 ignore next */ undefined
 
   return (

@@ -8,7 +8,7 @@ type UseProbeRefreshActionsArgs = {
   pluginStatesRef: MutableRefObject<Record<string, PluginState>>
   manualRefreshIdsRef: MutableRefObject<Set<string>>
   resetAutoUpdateSchedule: () => void
-  setLoadingForPlugins: (ids: string[]) => void
+  setLoadingForPlugins: (ids: string[], clearData?: boolean) => void
   setErrorForPlugins: (ids: string[], error: string) => void
   startBatch: (pluginIds?: string[]) => Promise<string[] | undefined>
 }
@@ -23,12 +23,13 @@ export function useProbeRefreshActions({
   startBatch,
 }: UseProbeRefreshActionsArgs) {
   const startManualRefresh = useCallback(
-    (ids: string[], errorMessage: string) => {
+    (ids: string[], errorMessage: string, credentialsChanged = false) => {
       for (const id of ids) {
         manualRefreshIdsRef.current.add(id)
       }
 
-      setLoadingForPlugins(ids)
+      if (credentialsChanged) setLoadingForPlugins(ids, true)
+      else setLoadingForPlugins(ids)
       startBatch(ids).catch((error) => {
         for (const id of ids) {
           manualRefreshIdsRef.current.delete(id)
@@ -41,15 +42,15 @@ export function useProbeRefreshActions({
   )
 
   const handleRetryPlugin = useCallback(
-    (id: string) => {
+    (id: string, credentialsChanged = false) => {
       const currentState = pluginStatesRef.current[id]
       if (currentState?.loading) return
       if (manualRefreshIdsRef.current.has(id)) return
       const lastManualRefreshAt = currentState?.lastManualRefreshAt
-      if (lastManualRefreshAt && Date.now() - lastManualRefreshAt < REFRESH_COOLDOWN_MS) return
+      if (!credentialsChanged && lastManualRefreshAt && Date.now() - lastManualRefreshAt < REFRESH_COOLDOWN_MS) return
 
       resetAutoUpdateSchedule()
-      startManualRefresh([id], "Failed to retry plugin:")
+      startManualRefresh([id], "Failed to retry plugin:", credentialsChanged)
     },
     [manualRefreshIdsRef, pluginStatesRef, resetAutoUpdateSchedule, startManualRefresh]
   )

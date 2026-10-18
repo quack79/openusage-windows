@@ -227,6 +227,19 @@ const resp = ctx.host.http.request({
 })
 ```
 
+## Provider API key storage
+
+```typescript
+host.credentials.getApiKey(): string | null
+```
+
+Reads the current plugin's API key from the system credential store. There is no
+provider-id argument. Currently enabled for `openrouter` and `cheaperinference`.
+Users save or remove keys on those providers' detail pages. Keys are stored in
+Windows Credential Manager or macOS Keychain, not JSON configuration files.
+Returns `null` if no key is saved and throws on credential-store failures or
+unsupported platforms.
+
 ## Keychain (macOS only)
 
 ```typescript
@@ -356,6 +369,7 @@ ctx.line.text({
   value: string,      // Required: value shown on the right
   color?: string,     // Optional: hex color for value text
   subtitle?: string   // Optional: smaller text below the line
+  amountUsd?: number  // Optional: raw USD amount for prominent balance display and currency conversion
 }): MetricLine
 ```
 
